@@ -19,6 +19,10 @@ label{display:block;font-weight:700;margin:12px 0 6px}
 input{width:100%;font-size:18px;padding:12px 14px;border:2px solid #cfdcd5;border-radius:12px;font-family:inherit}
 .cls{display:flex;gap:10px}.cls button{flex:1;font-size:22px;font-weight:800;padding:14px;border-radius:14px;border:3px solid #cfdcd5;background:#f4f8f6;color:var(--g2);font-family:inherit}
 .cls button.on{border-color:var(--g);background:#e3f5ec}
+.names{display:grid;gap:8px}.nmb{font-size:19px;font-weight:700;padding:12px 14px;border-radius:12px;border:3px solid #cfdcd5;background:#f4f8f6;color:#0B3D2B;text-align:left;font-family:inherit}
+.nmb.on{border-color:var(--g);background:#e3f5ec}.nmb:disabled{opacity:.45}
+.link{margin-top:10px;background:none;border:0;color:#0A7A4B;text-decoration:underline;font-size:15px;font-family:inherit;padding:4px 0}
+#nm{margin-top:8px}.nmb[dir=auto]{text-align:start}
 .btn{width:100%;margin-top:18px;font-size:20px;font-weight:800;padding:15px;border:0;border-radius:14px;background:var(--g);color:#fff;font-family:inherit}
 .err{color:var(--bad);font-size:14px;min-height:20px;margin-top:6px}
 .center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px}
@@ -45,10 +49,14 @@ input{width:100%;font-size:18px;padding:12px 14px;border:2px solid #cfdcd5;borde
   <section id="join" hidden>
     <div class="card">
       <div style="font-weight:800;font-size:20px;color:#0B3D2B" id="mtitle"></div>
-      <label for="nm">Your name</label>
-      <input id="nm" maxlength="24" autocomplete="off" placeholder="e.g. Abdullah">
       <label>Your class</label>
       <div class="cls" id="cls"></div>
+      <div id="namebox" hidden>
+        <label>Your name</label>
+        <div class="names" id="names"></div>
+        <input id="nm" maxlength="24" autocomplete="off" placeholder="Write your name" hidden>
+        <button type="button" class="link" id="other" hidden>My name is not on the list</button>
+      </div>
       <div class="err" id="jerr"></div>
       <button class="btn" id="jbtn">Join the match</button>
     </div>
@@ -79,14 +87,33 @@ async function boot() {
   $('#sub').textContent = info.title || '';
   if (me) return enter();
   $('#mtitle').textContent = info.title || '';
-  let cls = null;
+  let cls = null, pickedName = null, typing = false, taken = [];
+  const norm = (s) => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  const typeMode = () => { typing = true; pickedName = null; $('#names').querySelectorAll('button').forEach((x) => x.classList.remove('on')); $('#nm').hidden = false; $('#nm').focus(); };
+  $('#other').onclick = typeMode;
   $('#cls').innerHTML = info.teams.map((t, i) => `<button type="button" data-i="${i}">${esc(t)}</button>`).join('');
-  $('#cls').querySelectorAll('button').forEach((b) => b.onclick = () => { cls = +b.dataset.i; $('#cls').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); $('#jerr').textContent = ''; });
+  $('#cls').querySelectorAll('button').forEach((b) => b.onclick = async () => {
+    cls = +b.dataset.i; pickedName = null; typing = false; $('#jerr').textContent = '';
+    $('#cls').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+    const key = String(info.teams[cls]).replace('/', '-');
+    const [roster, players] = await Promise.all([
+      fetch(`${DB}/rooms/roster/${encodeURIComponent(key)}.json`).then((r) => r.json()).catch(() => null),
+      fetch(url('players')).then((r) => r.json()).catch(() => null),
+    ]);
+    taken = Object.values(players || {}).filter((p) => p.c === cls).map((p) => norm(p.n));
+    const list = Array.isArray(roster) ? roster.filter(Boolean) : [];
+    $('#namebox').hidden = false;
+    $('#names').innerHTML = list.map((n) => `<button type="button" dir="auto" class="nmb" ${taken.includes(norm(n)) ? 'disabled' : ''}>${esc(n)}${taken.includes(norm(n)) ? ' ✔' : ''}</button>`).join('');
+    $('#names').querySelectorAll('button:not([disabled])').forEach((x) => x.onclick = () => { pickedName = x.textContent; typing = false; $('#nm').hidden = true; $('#names').querySelectorAll('button').forEach((y) => y.classList.toggle('on', y === x)); $('#jerr').textContent = ''; });
+    $('#other').hidden = !list.length;
+    $('#nm').hidden = !!list.length; if (!list.length) typing = true;
+  });
   $('#nm').oninput = () => { $('#jerr').textContent = ''; };
   $('#jbtn').onclick = async () => {
-    const name = $('#nm').value.trim();
-    if (!name) { $('#jerr').textContent = 'Write your name first.'; return; }
     if (cls == null) { $('#jerr').textContent = 'Choose your class.'; return; }
+    const name = (typing ? $('#nm').value : pickedName || '').trim();
+    if (!name) { $('#jerr').textContent = typing ? 'Write your name first.' : 'Tap your name.'; return; }
+    if (taken.includes(norm(name))) { $('#jerr').textContent = 'This name has already joined.'; return; }
     const id = 'p' + Math.random().toString(36).slice(2, 10);
     me = { id, name, cls };
     $('#jbtn').disabled = true;
