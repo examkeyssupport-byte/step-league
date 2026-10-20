@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>STEP League — Results</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--g:#0A7A4B;--g2:#0B3D2B;--o:#F08A24;--gold:#FFC93C}
+*{box-sizing:border-box}
+html,body{margin:0;background:#073d27;color:#fff;font-family:Inter,system-ui,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 40px}
+.top{display:flex;align-items:center;gap:14px}.top img{width:64px;height:64px}
+h1{margin:0;font-size:30px}.sub{color:#9fd7b9;font-size:15px}
+h2{font-size:20px;margin:28px 0 10px;color:var(--gold)}
+.champs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.ch{background:rgba(0,0,0,.22);border:2px solid rgba(255,201,60,.35);border-radius:16px;padding:14px 16px}
+.ch .l{font-size:13px;color:#9fd7b9}.ch .w{font-size:30px;font-weight:800;margin-top:4px}.ch .w.tbd{font-size:18px;opacity:.55;font-weight:600}
+table{width:100%;border-collapse:collapse;background:#fff;color:#13261D;border-radius:14px;overflow:hidden;font-size:15px}
+th{background:var(--g2);color:#fff;text-align:left;padding:10px 12px;font-size:13px}
+td{padding:9px 12px;border-bottom:1px solid #e3ebe6;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.sc{font-weight:800;white-space:nowrap}.win{color:var(--g);font-weight:800}.tbd{color:#8a9a91}
+.d{white-space:nowrap;color:#4a5a52}
+.rk td:first-child{font-weight:800;color:var(--o);width:40px}
+.wrapx{overflow-x:auto;border-radius:14px}
+.foot{margin-top:18px;font-size:13px;color:#9fd7b9}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><img src="logo.png" alt=""><div><h1>STEP League 2026</h1><div class="sub">Results update automatically after every match.</div></div></div>
+  <h2>Champions</h2><div class="champs" id="champs"></div>
+  <h2>Matches</h2><div class="wrapx"><table><thead><tr><th>Date</th><th>Grade</th><th>Round</th><th>Score</th><th>Winner</th></tr></thead><tbody id="ms"></tbody></table></div>
+  <h2>Top players of the league</h2><div class="wrapx"><table class="rk"><thead><tr><th>#</th><th>Player</th><th>Class</th><th>Matches</th><th>Points</th></tr></thead><tbody id="tp"></tbody></table></div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+const DB = 'https://step-league-school-default-rtdb.europe-west1.firebasedatabase.app';
+const M = [{"id":"G1-SF1","gradeEn":"Grade 10","roundEn":"Semi-final 1","dateEn":"Sun 1 Nov"},{"id":"G3-QF1","gradeEn":"Grade 12","roundEn":"Quarter-final 1","dateEn":"Mon 2 Nov"},{"id":"G3-QF2","gradeEn":"Grade 12","roundEn":"Quarter-final 2","dateEn":"Tue 3 Nov"},{"id":"G2-PI","gradeEn":"Grade 11","roundEn":"Play-off","dateEn":"Tue 3 Nov"},{"id":"G1-SF2","gradeEn":"Grade 10","roundEn":"Semi-final 2","dateEn":"Thu 5 Nov"},{"id":"G2-SF1","gradeEn":"Grade 11","roundEn":"Semi-final 1","dateEn":"Tue 10 Nov"},{"id":"G3-SF1","gradeEn":"Grade 12","roundEn":"Semi-final 1","dateEn":"Tue 10 Nov"},{"id":"G2-SF2","gradeEn":"Grade 11","roundEn":"Semi-final 2","dateEn":"Wed 11 Nov"},{"id":"G3-SF2","gradeEn":"Grade 12","roundEn":"Semi-final 2","dateEn":"Wed 11 Nov"},{"id":"G1-F","gradeEn":"Grade 10","roundEn":"Final","dateEn":"Sun 15 Nov"},{"id":"G2-F","gradeEn":"Grade 11","roundEn":"Final","dateEn":"Mon 16 Nov"},{"id":"G3-F","gradeEn":"Grade 12","roundEn":"Final","dateEn":"Tue 17 Nov"},{"id":"CC","gradeEn":"Champions Cup","roundEn":"Champions Cup","dateEn":"Wed 18 Nov"}];
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+async function load() {
+  const R = {};
+  await Promise.all(M.map(async (m) => { try { const v = await (await fetch(`${DB}/rooms/res-${m.id}.json`)).json(); if (v) R[m.id] = v; } catch (e) {} }));
+  const win = (id) => (R[id] ? R[id].winner : null);
+  $('#champs').innerHTML = [['Grade 10', 'G1-F'], ['Grade 11', 'G2-F'], ['Grade 12', 'G3-F'], ['Champions Cup', 'CC']]
+    .map(([l, id]) => `<div class="ch"><div class="l">${l}</div><div class="w ${win(id) ? '' : 'tbd'}">${win(id) ? '🏆 ' + esc(win(id)) : 'To be decided'}</div></div>`).join('');
+  $('#ms').innerHTML = M.map((m) => {
+    const r = R[m.id];
+    const score = !r ? '<span class="tbd">Not played yet</span>'
+      : r.teams.length === 2 ? `${esc(r.teams[0])} &nbsp;<b style="color:#0A7A4B">${r.totals[0]} : ${r.totals[1]}</b>&nbsp; ${esc(r.teams[1])}`
+      : r.teams.map((t, i) => `${esc(t)} (<b>${r.totals[i]}</b>)`).join(' · ');
+    return `<tr><td class="d">${esc(m.dateEn)}</td><td>${esc(m.gradeEn)}</td><td>${esc(m.roundEn)}</td><td class="sc">${score}</td><td class="win">${r ? esc(r.winner) : ''}</td></tr>`;
+  }).join('');
+  const agg = {};
+  for (const r of Object.values(R)) for (const p of r.players || []) { const k = p.n.trim().toLowerCase() + '|' + p.c; const a = (agg[k] = agg[k] || { n: p.n, c: p.c, pts: 0, m: 0 }); a.pts += p.pts; a.m++; }
+  const top = Object.values(agg).sort((a, b) => b.pts - a.pts).slice(0, 15);
+  $('#tp').innerHTML = top.length ? top.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.n)}</td><td>${esc(p.c)}</td><td>${p.m}</td><td class="sc">${p.pts}</td></tr>`).join('') : '<tr><td colspan="5" class="tbd">No matches played yet.</td></tr>';
+  $('#foot').textContent = 'Last update: ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+load(); setInterval(load, 30000);
+</script>
+</body>
+</html>
