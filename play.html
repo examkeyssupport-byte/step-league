@@ -68,6 +68,7 @@ input{width:100%;font-size:18px;padding:12px 14px;border:2px solid #cfdcd5;borde
   <section id="game" hidden style="flex:1;display:flex;flex-direction:column">
     <div class="me"><span id="mename"></span><span class="pts" id="mepts">0</span></div>
     <div id="gview" style="flex:1;display:flex;flex-direction:column"></div>
+    <div id="diag" style="margin-top:16px;text-align:center;font-size:13px;opacity:.75;direction:ltr"></div>
   </section>
 </div>
 <script>
@@ -131,9 +132,16 @@ function show(id) { ['join', 'nogame', 'game'].forEach((s) => $('#' + s).hidden 
 function enter() {
   show('game');
   $('#mename').textContent = me.name;
-  listen('state', (v) => { state = v; render(); });
+  listen('state', (v) => { state = v; try { render(); jsErr = ''; } catch (e) { jsErr = String(e.message || e); } });
   listen('scores/' + me.id, (v) => { $('#mepts').textContent = v || 0; });
+  // status line: lets the teacher see at a glance whether a phone is still receiving the match
+  setInterval(() => {
+    const age = okAt ? Math.round((Date.now() - okAt) / 1000) : 99, d = $('#diag');
+    d.innerHTML = `Match ${esc(room)} · ${age <= 6 ? '<span style="color:#4ade80">connected ✔</span>' : `<span style="color:#f87171">no connection (${age}s)</span>`}${jsErr ? ' · error: ' + esc(jsErr) : ''}${age > 6 && netErr ? ' · ' + esc(netErr) : ''}${age > 12 ? ' <button onclick="location.reload()" style="font-size:16px;padding:6px 14px;border-radius:10px;border:0;margin-inline-start:6px">Reload</button>' : ''}`;
+  }, 1000);
 }
+let okAt = 0, netErr = '', jsErr = '';
+const seenSent = {};
 // Firebase REST streaming (Server-Sent Events): keeps one value updated
 function listen(path, cb) {
   let val = null;
@@ -149,11 +157,11 @@ function listen(path, cb) {
     }
     cb(val);
   };
-  es.addEventListener('put', (e) => apply(e, false));
-  es.addEventListener('patch', (e) => apply(e, true));
+  es.addEventListener('put', (e) => { okAt = Date.now(); apply(e, false); });
+  es.addEventListener('patch', (e) => { okAt = Date.now(); apply(e, true); });
   // backup for school/mobile networks that block the live stream: read the value every 1.5 s and apply it when it changed
   let last = '';
-  const poll = async () => { try { const v = await fetch(url(path), { cache: 'no-store' }).then((r) => r.json()); const s = JSON.stringify(v); if (s !== last && s !== JSON.stringify(val)) { last = s; val = v; cb(val); } else last = s; } catch (e) {} };
+  const poll = async () => { try { const r = await fetch(url(path), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); const v = await r.json(); okAt = Date.now(); netErr = ''; const s = JSON.stringify(v); if (s !== last && s !== JSON.stringify(val)) { last = s; val = v; cb(val); } else last = s; } catch (e) { netErr = String(e.message || e); } };
   setInterval(poll, 1500); poll();
   return es;
 }
@@ -176,6 +184,8 @@ function render() {
       ${q.p ? `<div class="q" style="margin-top:14px;font-size:16px">${esc(q.p)}</div>` : ''}
       ${!reveal && mine != null ? '<div class="center" style="flex:0;margin-top:16px"><div class="muted">Answer saved</div></div>' : ''}`;
     if (!reveal && mine == null) v.querySelectorAll('.opt').forEach((b) => b.onclick = () => answer(k, +b.dataset.i));
+    // tell the teacher screen this phone has the question on screen
+    if (!reveal && !seenSent[k] && v.querySelectorAll('.opt').length) { seenSent[k] = 1; fetch(url(`seen/${k}/${me.id}`), { method: 'PUT', body: '1' }).catch(() => { delete seenSent[k]; }); }
     if (!reveal && state.dl) { const upd = () => { const s = Math.max(0, Math.ceil((state.dl - (Date.now() + (state.skew || 0))) / 1000)); const t = $('#tm'); if (t) t.textContent = s + 's'; }; upd(); tick = setInterval(upd, 500); }
   }
 }
