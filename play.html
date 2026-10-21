@@ -150,6 +150,10 @@ function listen(path, cb) {
   };
   es.addEventListener('put', (e) => apply(e, false));
   es.addEventListener('patch', (e) => apply(e, true));
+  // backup for school/mobile networks that block the live stream: read the value every 1.5 s and apply it when it changed
+  let last = '';
+  const poll = async () => { try { const v = await fetch(url(path), { cache: 'no-store' }).then((r) => r.json()); const s = JSON.stringify(v); if (s !== last && s !== JSON.stringify(val)) { last = s; val = v; cb(val); } else last = s; } catch (e) {} };
+  setInterval(poll, 1500); poll();
   return es;
 }
 
