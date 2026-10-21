@@ -33,8 +33,9 @@ input{width:100%;font-size:18px;padding:12px 14px;border:2px solid #cfdcd5;borde
 .q{direction:ltr;text-align:left;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:16px;padding:14px 16px;font-size:19px;line-height:1.5;margin-bottom:14px;white-space:pre-line}
 .qh{font-size:14px;opacity:.85;margin-bottom:8px;display:flex;justify-content:space-between}
 .opts{display:grid;gap:12px;direction:ltr}
-.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;color:#0E1A14;border:4px solid transparent;border-radius:16px;padding:14px;font-size:19px;font-weight:600;font-family:inherit}
-.opt b{flex:0 0 40px;height:40px;border-radius:50%;background:var(--g);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+:root{color-scheme:only light}
+.opt{display:flex;align-items:center;gap:12px;width:100%;min-height:62px;text-align:left;background:#fff;color:#0E1A14;-webkit-text-fill-color:#0E1A14;-webkit-appearance:none;appearance:none;border:4px solid transparent;border-radius:16px;padding:14px;font-size:19px;font-weight:600;font-family:inherit}
+.opt b{-webkit-text-fill-color:#fff;flex:0 0 40px;height:40px;border-radius:50%;background:var(--g);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
 .opt.sel{border-color:var(--gold);background:#fff8e1}
 .opt.ok{border-color:var(--ok);background:#dcfce7}.opt.no{border-color:var(--bad);background:#fee2e2}
 .opts.locked .opt:not(.sel):not(.ok){opacity:.45}
@@ -169,9 +170,10 @@ function render() {
     const reveal = state.phase === 'reveal';
     let res = '';
     if (reveal) res = mine == null ? '<div class="center" style="flex:0;margin:14px 0"><div class="res">⏱️</div><div class="muted">No answer</div></div>' : mine === state.ans ? '<div class="center" style="flex:0;margin:14px 0"><div class="res" style="color:#4ade80">Correct ✔</div></div>' : '<div class="center" style="flex:0;margin:14px 0"><div class="res" style="color:#f87171">Wrong ✘</div></div>';
+    // options first so they are on screen without scrolling; the question text (also on the big screen) goes under them
     v.innerHTML = `<div class="qh"><span>${esc(state.round || '')} · Question ${state.n}</span><span class="timer" id="tm"></span></div>
-      ${q.p ? `<div class="q">${esc(q.p)}</div>` : ''}
-      <div class="opts ${mine != null || reveal ? 'locked' : ''}">${q.o.map((o, i) => `<button class="opt ${mine === i ? 'sel' : ''} ${reveal && i === state.ans ? 'ok' : ''} ${reveal && mine === i && i !== state.ans ? 'no' : ''}" data-i="${i}"><b>${L[i]}</b><span>${esc(o)}</span></button>`).join('')}</div>${res}
+      <div class="opts ${mine != null || reveal ? 'locked' : ''}">${(q.o || []).map((o, i) => `<button class="opt ${mine === i ? 'sel' : ''} ${reveal && i === state.ans ? 'ok' : ''} ${reveal && mine === i && i !== state.ans ? 'no' : ''}" data-i="${i}"><b>${L[i]}</b><span>${esc(o)}</span></button>`).join('')}</div>${res}
+      ${q.p ? `<div class="q" style="margin-top:14px;font-size:16px">${esc(q.p)}</div>` : ''}
       ${!reveal && mine != null ? '<div class="center" style="flex:0;margin-top:16px"><div class="muted">Answer saved</div></div>' : ''}`;
     if (!reveal && mine == null) v.querySelectorAll('.opt').forEach((b) => b.onclick = () => answer(k, +b.dataset.i));
     if (!reveal && state.dl) { const upd = () => { const s = Math.max(0, Math.ceil((state.dl - (Date.now() + (state.skew || 0))) / 1000)); const t = $('#tm'); if (t) t.textContent = s + 's'; }; upd(); tick = setInterval(upd, 500); }
