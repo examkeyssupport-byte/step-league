@@ -102,7 +102,7 @@ async function boot() {
   $('#other').onclick = typeMode;
   $('#cls').innerHTML = info.teams.map((t, i) => `<button type="button" data-i="${i}">${esc(t)}</button>`).join('');
   $('#cls').querySelectorAll('button').forEach((b) => b.onclick = async () => {
-    cls = +b.dataset.i; pickedName = null; typing = false; $('#jerr').textContent = '';
+    cls = +b.dataset.i; pickedName = null; typing = false; $('#jerr').textContent = 'Loading names…'; // a slow network can take a few seconds
     $('#cls').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
     const key = String(info.teams[cls]).replace('/', '-');
     const [roster, players] = await Promise.all([
@@ -111,7 +111,7 @@ async function boot() {
     ]);
     taken = Object.values(players || {}).filter((p) => p.c === cls).map((p) => norm(p.n));
     const list = Array.isArray(roster) ? roster.filter(Boolean) : [];
-    $('#namebox').hidden = false;
+    $('#namebox').hidden = false; $('#jerr').textContent = '';
     $('#names').innerHTML = list.map((n) => `<button type="button" dir="auto" class="nmb" ${taken.includes(norm(n)) ? 'disabled' : ''}>${esc(n)}${taken.includes(norm(n)) ? ' ✔' : ''}</button>`).join('');
     $('#names').querySelectorAll('button:not([disabled])').forEach((x) => x.onclick = () => { pickedName = x.textContent; typing = false; $('#nm').hidden = true; $('#names').querySelectorAll('button').forEach((y) => y.classList.toggle('on', y === x)); $('#jerr').textContent = ''; });
     $('#other').hidden = !list.length;
