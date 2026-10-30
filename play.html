@@ -24,6 +24,9 @@ input{width:100%;font-size:18px;padding:12px 14px;border:2px solid #cfdcd5;borde
 .link{margin-top:10px;background:none;border:0;color:#0A7A4B;text-decoration:underline;font-size:15px;font-family:inherit;padding:4px 0}
 #nm{margin-top:8px}.nmb[dir=auto]{text-align:start}
 .btn{width:100%;margin-top:18px;font-size:20px;font-weight:800;padding:15px;border:0;border-radius:14px;background:var(--g);color:#fff;font-family:inherit}
+.avs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.avs button{font-size:28px;line-height:1;padding:8px 0;border-radius:12px;border:3px solid #cfdcd5;background:#f4f8f6;font-family:inherit}
+.avs button.on{border-color:var(--o);background:#fff3e0;transform:scale(1.08)}
 .err{color:var(--bad);font-size:14px;min-height:20px;margin-top:6px}
 .center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px}
 .big{font-size:30px;font-weight:800}
@@ -62,6 +65,10 @@ input{-webkit-user-select:text;user-select:text}
         <input id="nm" maxlength="24" autocomplete="off" placeholder="Write your name" hidden>
         <button type="button" class="link" id="other" hidden>My name is not on the list</button>
       </div>
+      <div id="avbox" hidden>
+        <label>Choose your avatar</label>
+        <div class="avs" id="avs"></div>
+      </div>
       <div class="err" id="jerr"></div>
       <button class="btn" id="jbtn">Join the match</button>
     </div>
@@ -97,6 +104,11 @@ async function boot() {
   if (me) return enter();
   $('#mtitle').textContent = info.title || '';
   let cls = null, pickedName = null, typing = false, taken = [];
+  // avatar instead of a photo (no pictures of students online); a random one is preselected
+  const AV = ['🦅', '🦁', '🐺', '🐯', '🦈', '🐉', '🦊', '🐻', '🐆', '🦂', '🐎', '🐍', '⚽', '🏀', '🏆', '⚡', '🔥', '🚀', '💎', '👑', '🎯', '🛡️', '⭐', '🌪️'];
+  let av = AV[Math.floor(Math.random() * AV.length)];
+  $('#avs').innerHTML = AV.map((x) => `<button type="button" class="${x === av ? 'on' : ''}">${x}</button>`).join('');
+  $('#avs').querySelectorAll('button').forEach((b) => b.onclick = () => { av = b.textContent; $('#avs').querySelectorAll('button').forEach((y) => y.classList.toggle('on', y === b)); });
   const norm = (s) => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
   const typeMode = () => { typing = true; pickedName = null; $('#names').querySelectorAll('button').forEach((x) => x.classList.remove('on')); $('#nm').hidden = false; $('#nm').focus(); };
   $('#other').onclick = typeMode;
@@ -111,7 +123,7 @@ async function boot() {
     ]);
     taken = Object.values(players || {}).filter((p) => p.c === cls).map((p) => norm(p.n));
     const list = Array.isArray(roster) ? roster.filter(Boolean) : [];
-    $('#namebox').hidden = false; $('#jerr').textContent = '';
+    $('#namebox').hidden = false; $('#avbox').hidden = false; $('#jerr').textContent = '';
     $('#names').innerHTML = list.map((n) => `<button type="button" dir="auto" class="nmb" ${taken.includes(norm(n)) ? 'disabled' : ''}>${esc(n)}${taken.includes(norm(n)) ? ' ✔' : ''}</button>`).join('');
     $('#names').querySelectorAll('button:not([disabled])').forEach((x) => x.onclick = () => { pickedName = x.textContent; typing = false; $('#nm').hidden = true; $('#names').querySelectorAll('button').forEach((y) => y.classList.toggle('on', y === x)); $('#jerr').textContent = ''; });
     $('#other').hidden = !list.length;
@@ -124,10 +136,10 @@ async function boot() {
     if (!name) { $('#jerr').textContent = typing ? 'Write your name first.' : 'Tap your name.'; return; }
     if (taken.includes(norm(name))) { $('#jerr').textContent = 'This name has already joined.'; return; }
     const id = 'p' + Math.random().toString(36).slice(2, 10);
-    me = { id, name, cls };
+    me = { id, name, cls, av };
     $('#jbtn').disabled = true;
     let ok = false;
-    for (let n = 0; n < 3 && !ok; n++) { ok = await fx(url('players/' + id), { method: 'PUT', body: JSON.stringify({ n: name, c: cls, t: { '.sv': 'timestamp' } }) }).then((r) => r.ok).catch(() => false); if (!ok) await new Promise((r) => setTimeout(r, 800)); }
+    for (let n = 0; n < 3 && !ok; n++) { ok = await fx(url('players/' + id), { method: 'PUT', body: JSON.stringify({ n: name, c: cls, a: av, t: { '.sv': 'timestamp' } }) }).then((r) => r.ok).catch(() => false); if (!ok) await new Promise((r) => setTimeout(r, 800)); }
     $('#jbtn').disabled = false;
     if (!ok) { $('#jerr').textContent = 'Could not join. Check the internet and try again.'; return; }
     ls.set('sl_me_' + room, me);
@@ -139,7 +151,7 @@ function show(id) { ['join', 'nogame', 'game'].forEach((s) => $('#' + s).hidden 
 
 function enter() {
   show('game');
-  $('#mename').textContent = me.name;
+  $('#mename').textContent = (me.av ? me.av + ' ' : '') + me.name;
   listen('state', (v) => { state = v; try { render(); jsErr = ''; } catch (e) { jsErr = String(e.message || e); } });
   listen('scores/' + me.id, (v) => { $('#mepts').textContent = v || 0; });
   // status line: lets the teacher see at a glance whether a phone is still receiving the match
