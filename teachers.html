@@ -1,0 +1,48 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>ملفات المعلمين — دوري ستيب</title>
+<style>
+:root{--g:#0A7A4B;--g2:#0B3D2B;--gold:#FFC93C}*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,"Segoe UI",Tahoma,sans-serif;background:radial-gradient(ellipse at 50% 110%,#0f6b43 0%,#073d27 55%,#04190f 100%);color:#fff;padding:24px 16px 40px}
+.wrap{max-width:860px;margin:0 auto}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:20px}.top img{width:64px;height:64px;border-radius:16px}
+h1{margin:0;font-size:28px}.sub{opacity:.8;font-size:15px}
+.card{background:#fff;color:#0E1A14;border-radius:20px;padding:20px}
+input{width:100%;font-size:20px;padding:12px 14px;border:2px solid #cfdcd5;border-radius:12px;direction:ltr;text-align:center}
+button,.btn{display:inline-block;font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 18px;background:var(--g);color:#fff;cursor:pointer;text-decoration:none}
+.err{color:#dc2626;min-height:20px;margin-top:8px;font-size:15px}
+.links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}.links a{background:var(--gold);color:#2b1d00;text-align:center}
+.f{display:flex;align-items:center;gap:14px;background:#fff;color:#0E1A14;border-radius:16px;padding:14px 16px;margin-top:10px}
+.f .i{font-size:30px;flex:0 0 40px;text-align:center}.f .tx{flex:1}.f b{display:block;font-size:17px}.f span{font-size:14px;color:#5D6B63}
+video{width:100%;border-radius:16px;margin-top:10px;background:#000}
+.note{font-size:14px;opacity:.85;margin-top:18px;line-height:1.7}
+@media(max-width:560px){.links{grid-template-columns:1fr}.f{flex-wrap:wrap}}
+</style></head><body><div class="wrap">
+<div class="top"><img src="logo.png" alt=""><div><h1>ملفات المعلمين — دوري ستيب</h1><div class="sub">كل ملفات الدوري في مكان واحد، وبتتحدث هنا أول بأول</div></div></div>
+<div id="lock" class="card"><b>اكتب كلمة سر الدوري</b><div style="margin-top:10px"><input id="pw" type="password" autocomplete="off"></div><div class="err" id="err"></div><button id="go" style="width:100%;margin-top:6px">دخول</button></div>
+<div id="main" hidden>
+  <div class="links"><a class="btn" href="screen.html">🖥️ شاشة المباراة</a><a class="btn" href="results.html">📊 صفحة النتايج</a></div>
+  <div id="list"></div>
+  <div class="note">🔒 الدليل وبنك الأسئلة متشفرين بكلمة السر، ولا يُعطوا للطلاب. الرابط ده للمعلمين بس.</div>
+</div>
+<script>
+const FILES = [{"id":"f-guide.enc","name":"دليل المعلم - دوري ستيب.pdf","t":"دليل المعلم","d":"الفكرة، مباريات كل معلم بالحصة، وخطوات التشغيل","i":"📘","enc":true,"video":false,"kb":211},{"id":"f-tutorial.mp4","name":"فيديو شرح المسابقة للمعلمين.mp4","t":"فيديو شرح المسابقة","d":"طريقة تشغيل المباراة خطوة بخطوة (دقيقتين ونص)","i":"🎥","enc":false,"video":true,"kb":8459},{"id":"f-schedule.pdf","name":"جدول المباريات.pdf","t":"جدول المباريات","d":"كل مباراة باليوم والحصة والمعلم (للطباعة)","i":"📅","enc":false,"video":false,"kb":126},{"id":"f-schedule-students.png","name":"جدول المباريات (للطلاب).png","t":"جدول المباريات للطلاب","d":"صورة لجروبات الفصول","i":"🗓️","enc":false,"video":false,"kb":304},{"id":"f-announce.png","name":"إعلان الدوري للجروبات.png","t":"إعلان الدوري","d":"صورة لجروبات الفصول، فيها روابط تطبيق ستيب","i":"📣","enc":false,"video":false,"kb":671},{"id":"f-announce-status.png","name":"إعلان الدوري (حالة واتساب).png","t":"إعلان الدوري (حالة واتساب)","d":"نفس الإعلان بمقاس الحالة","i":"📱","enc":false,"video":false,"kb":854},{"id":"f-bank.enc","name":"بنك أسئلة المباريات (نسخة المعلم).pdf","t":"بنك أسئلة المباريات (نسخة المعلم)","d":"كل أسئلة المباريات بالإجابات، احتياطي لو النت وقع (لا يُعطى للطلاب)","i":"🔒","enc":true,"video":false,"kb":1898},{"id":"f-poster-a3.pdf","name":"بوستر الدوري A3.pdf","t":"بوستر الدوري A3","d":"شجرة المباريات للتعليق في المدرسة","i":"🏆","enc":false,"video":false,"kb":177},{"id":"f-certificates.pdf","name":"الشهادات.pdf","t":"الشهادات","d":"شهادات الأبطال ونجم الدوري","i":"🎖️","enc":false,"video":false,"kb":207},{"id":"f-stickers.pdf","name":"ملصقات الكؤوس.pdf","t":"ملصقات الكؤوس","d":"ملصقات للكؤوس والميداليات","i":"🥇","enc":false,"video":false,"kb":437}], CHECK = {"salt":"ghw+9CXWruzIm0n6pYrs6w==","iv":"F2XXMP04myeN6X1x","iter":150000,"ct":"spcjO6xJkLtb0DaMwHMcliW4"};
+const $ = (s) => document.querySelector(s);
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+async function key(pw, e) { const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']); return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt: b64(e.salt), iterations: e.iter }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']); }
+async function dec(pw, e) { return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(e.iv) }, await key(pw, e), b64(e.ct))); }
+let PW = '';
+function save(bytes, name, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([bytes], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 1000); }
+async function open(f, btn) {
+  if (!f.enc) return;
+  btn.textContent = '…'; try { const e = await (await fetch(f.id + '?v=' + Date.now(), { cache: 'no-store' })).json(); save(await dec(PW, e), f.name, 'application/pdf'); btn.textContent = 'تحميل'; } catch (x) { btn.textContent = 'خطأ، جرّب تاني'; }
+}
+function show() {
+  $('#lock').hidden = true; $('#main').hidden = false;
+  $('#list').innerHTML = FILES.map((f, i) => '<div class="f"><div class="i">' + f.i + '</div><div class="tx"><b>' + f.t + '</b><span>' + f.d + '</span></div>' + (f.enc ? '<button data-i="' + i + '">تحميل</button>' : '<a class="btn" href="' + f.id + '" download="' + f.name + '">تحميل</a>') + '</div>' + (f.video ? '<video controls preload="metadata" src="' + f.id + '"></video>' : '')).join('');
+  $('#list').querySelectorAll('button[data-i]').forEach((b) => b.onclick = () => open(FILES[+b.dataset.i], b));
+}
+async function tryPw(pw, quiet) { try { await dec(pw, CHECK); PW = pw; try { sessionStorage.setItem('slTeach', pw); } catch (e) {} show(); } catch (e) { if (!quiet) $('#err').textContent = 'كلمة السر غلط.'; } }
+$('#go').onclick = () => tryPw($('#pw').value.trim());
+$('#pw').onkeydown = (e) => { if (e.key === 'Enter') tryPw($('#pw').value.trim()); };
+try { const s = sessionStorage.getItem('slTeach'); if (s) tryPw(s, true); } catch (e) {}
+</script></div></body></html>
