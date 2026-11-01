@@ -71,7 +71,7 @@ input{-webkit-user-select:text;user-select:text}
           <div class="names" id="names"></div>
           <input id="nm" maxlength="24" autocomplete="off" placeholder="Write your name" hidden>
           <button type="button" class="link" id="other" hidden>My name is not on the list</button>
-          <div id="codebox" hidden><label>Your code (on your card)</label><input id="pcode" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4 digits" style="letter-spacing:8px;font-size:24px;text-align:center"></div>
+          <div id="codebox" hidden><label>Your code (on your card)</label><input id="pcode" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="4 digits" style="letter-spacing:8px;font-size:24px;text-align:center"></div>
         </div>
       </div>
       <div id="fbox" hidden>
@@ -126,6 +126,13 @@ async function boot() {
     const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveBits']);
     const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: new TextEncoder().encode(`steplg|${key}|${n}`), iterations: 100000 }, k, 128);
     return [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, '0')).join('') === h;
+  };
+  // teachers' emergency code (6 digits, owner 11-01): opens any name when a student forgot his ID digits; only its hash is here
+  const MASTER = 'f44ce9426cdc1c6955be15ba07cfd3bd';
+  const masterOk = async (code) => {
+    const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: new TextEncoder().encode('steplg|master'), iterations: 200000 }, k, 128);
+    return [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, '0')).join('') === MASTER;
   };
   // avatar instead of a photo (no pictures of students online); a random one is preselected
   const AV = ['🦅', '🦁', '🐺', '🐯', '🦈', '🐉', '🦊', '🐻', '🐆', '🦂', '🐎', '🐍', '⚽', '🏀', '🏆', '⚡', '🔥', '🚀', '💎', '👑', '🎯', '🛡️', '⭐', '🌪️'];
@@ -208,9 +215,10 @@ async function boot() {
     const ent = entries.find((x) => x.n === name);
     if (ent && ent.h) {
       const code = $('#pcode').value.trim();
-      if (!/^\d{4}$/.test(code)) { $('#jerr').textContent = ent.t === 'id' ? 'Write the last 4 digits of your ID number.' : 'Write the 4-digit code from your card.'; return; }
+      if (!/^\d{4}$|^\d{6}$/.test(code)) { $('#jerr').textContent = ent.t === 'id' ? 'Write the last 4 digits of your ID number.' : 'Write the 4-digit code from your card.'; return; }
       $('#jerr').textContent = 'Checking…';
-      if (!(await codeOk(String(info.teams[cls]).replace('/', '-'), name, code, ent.h).catch(() => false))) { $('#jerr').textContent = ent.t === 'id' ? 'Wrong digits. Check the last 4 digits of your ID.' : 'Wrong code.'; return; }
+      const good = code.length === 6 ? await masterOk(code).catch(() => false) : await codeOk(String(info.teams[cls]).replace('/', '-'), name, code, ent.h).catch(() => false);
+      if (!good) { $('#jerr').textContent = ent.t === 'id' ? 'Wrong digits. Check the last 4 digits of your ID.' : 'Wrong code.'; return; }
       $('#jerr').textContent = '';
     }
     const now = await fx(url('players')).then((r) => r.json()).catch(() => null);
