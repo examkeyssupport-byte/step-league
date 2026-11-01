@@ -121,6 +121,8 @@ async function boot() {
   if (me) return enter();
   $('#mtitle').textContent = info.title || '';
   let cls = null, pickedName = null, typing = false, taken = [], entries = [];
+  // team «3/4 A» (free practice inside one class) uses the class list of 3/4
+  const classKey = (i) => String(info.teams[i]).replace(/ [ABC]$/, '').replace('/', '-');
   // the code is checked on the phone against a slow hash (the database never holds the codes themselves)
   const codeOk = async (key, n, code, h) => {
     const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveBits']);
@@ -146,14 +148,15 @@ async function boot() {
   $('#cls').querySelectorAll('button').forEach((b) => b.onclick = async () => {
     cls = +b.dataset.i; pickedName = null; typing = false; $('#jerr').textContent = 'Loading names…'; // a slow network can take a few seconds
     $('#cls').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
-    const key = String(info.teams[cls]).replace('/', '-');
+    const key = classKey(cls);
     // any student of the class may play (absences happen); the name comes from the full class list, at most 5 per class
     const [roster, players] = await Promise.all([
       fx(`${DB}/rooms/fanlist/${encodeURIComponent(key)}.json`).then((r) => r.json()).catch(() => null),
       fx(url('players')).then((r) => r.json()).catch(() => null),
     ]);
-    taken = Object.values(players || {}).filter((p) => p.c === cls).map((p) => norm(p.n));
-    if (taken.length >= MAXP) { $('#namebox').hidden = true; $('#avbox').hidden = true; $('#jerr').textContent = `Class ${info.teams[cls]} already has ${MAXP} players. Join as a fan when the teacher opens it.`; return; }
+    // a name is taken in BOTH halves of a split class («2/1 A» / «2/1 B»), the 5-player cap counts per team
+    taken = Object.values(players || {}).filter((p) => classKey(p.c) === key).map((p) => norm(p.n));
+    if (Object.values(players || {}).filter((p) => p.c === cls).length >= MAXP) { $('#namebox').hidden = true; $('#avbox').hidden = true; $('#jerr').textContent = `Class ${info.teams[cls]} already has ${MAXP} players. Join as a fan when the teacher opens it.`; return; }
     entries = Array.isArray(roster) ? roster.filter(Boolean).map((x) => (typeof x === 'string' ? { n: x } : x)) : [];
     const list = entries.map((x) => x.n);
     $('#codebox').hidden = !entries.some((x) => x.h); $('#pcode').value = '';
@@ -217,7 +220,7 @@ async function boot() {
       const code = $('#pcode').value.trim();
       if (!/^\d{4}$|^\d{6}$/.test(code)) { $('#jerr').textContent = ent.t === 'id' ? 'Write the last 4 digits of your ID number.' : 'Write the 4-digit code from your card.'; return; }
       $('#jerr').textContent = 'Checking…';
-      const good = code.length === 6 ? await masterOk(code).catch(() => false) : await codeOk(String(info.teams[cls]).replace('/', '-'), name, code, ent.h).catch(() => false);
+      const good = code.length === 6 ? await masterOk(code).catch(() => false) : await codeOk(classKey(cls), name, code, ent.h).catch(() => false);
       if (!good) { $('#jerr').textContent = ent.t === 'id' ? 'Wrong digits. Check the last 4 digits of your ID.' : 'Wrong code.'; return; }
       $('#jerr').textContent = '';
     }
