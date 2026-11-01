@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Qualifier Results</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6f4;color:#14281d;font:16px/1.5 system-ui,"Segoe UI",Tahoma,sans-serif}main{max-width:760px;margin:auto;padding:16px}
+h1{font-size:22px;color:#0b5d36;margin:4px 0}.card{background:#fff;border:1px solid #d9e3dc;border-radius:14px;padding:14px;margin-top:12px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:0;padding:10px 16px;background:#0b5d36;color:#fff;font-weight:700}button.off{background:#b3261e}button.mini{background:#eef2ef;color:#5b2a26;padding:4px 9px;font-weight:500;font-size:13px}button.mini.arm{background:#b3261e;color:#fff}
+input{font:inherit;padding:10px;border:1px solid #b9c9be;border-radius:10px;width:100%;margin-bottom:10px}
+table{width:100%;border-collapse:collapse}th,td{padding:8px 6px;border-bottom:1px solid #e6ece8;text-align:right}th{font-size:14px;color:#5b6d62}
+tr.top td{background:#fff6d6;font-weight:700}tr.res td{background:#eef6f0}.num{direction:ltr;unicode-bidi:isolate;display:inline-block}.muted{color:#5b6d62;font-size:14px}.err{color:#b3261e}
+</style></head><body><main>
+<h1>تصفية فصل 2/5</h1><p class="muted">الصفحة دي للمعلم بس. الإجابات مشفرة وبتتفتح بكلمة سر الدوري.</p>
+<div class="card" id="lock"><input id="pw" type="password" placeholder="كلمة السر"><button id="un">افتح</button><div class="err" id="e"></div></div>
+<div id="app" hidden>
+  <div class="card"><div id="st" style="margin-bottom:8px"></div><button id="tog"></button><div class="muted" style="margin-top:8px">رابط الطلاب: <span class="num" id="lnk"></span></div></div>
+  <div class="card"><div id="sum" class="muted"></div><table><thead><tr><th>#</th><th>الطالب</th><th>الدرجة</th><th>الوقت</th><th>ملاحظة</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+</div>
+</main>
+<script>
+const DB = 'https://step-league-school-default-rtdb.europe-west1.firebasedatabase.app', ENC = {"salt":"N0a0J661ReLzW2JvFyQD/g==","iv":"43dxhEFmRkL1YDxu","ct":"3I0XfwEn60Yoagsp7EMEj3ObHe0bovQ8apLGt/n8eJqk4mEazfZeKd09/SaOXrSmqwEyVwvscCfwXC2gkCYEdP0vSIo5z4XMrg5bqOCxJlypalsDc9OyfoazpQcmfRphC1pSuNLD4UDrxDEXxAKiPOno1+uYcM+Ht5+avzMulLXBnNzNimXJYAMHDSCm0yJP44zO0IUjRWM1k9InKWDuAZ1jhWI32DbwStfHGzIxFVSRIeRKlNRD8mDSJfhSPUtYHP0zURQ7oklKHBFHBUBVh50tTeJumDxVdfWwKTuZfM/HFA8zE8UcL3osOOEayDJLSKh8vUGbWEuPlHSYxZocVv9j9raC1iNMlyJu++xmMJr320QVfGly8Ye+YC9r","iter":200000}, TOTAL = 20;
+const room = new URLSearchParams(location.search).get('r') || "qual-2-5";
+const $ = (s) => document.querySelector(s);
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const url = (p) => `${DB}/rooms/${encodeURIComponent(room)}/${p}.json`;
+function fx(u, opt = {}, ms = 7000) { const c = new AbortController(), t = setTimeout(() => c.abort(), ms); return fetch(u, { ...opt, cache: 'no-store', signal: c.signal }).finally(() => clearTimeout(t)); }
+let KEY = null, isOpen = false, arm = null;
+$('#lnk').textContent = location.href.replace(/qualify-results\.html.*/, 'qualify.html') + (room === "qual-2-5" ? '' : '?r=' + room);
+$('#un').onclick = async () => {
+  try {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode($('#pw').value), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(ENC.salt), iterations: ENC.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    KEY = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(ENC.iv) }, key, b64(ENC.ct))));
+  } catch (e) { $('#e').textContent = 'كلمة السر غلط'; return; }
+  $('#lock').hidden = true; $('#app').hidden = false; load(); setInterval(load, 4000);
+};
+$('#tog').onclick = async () => {
+  const want = !isOpen; $('#tog').disabled = true;
+  for (let i = 0; i < 4; i++) { try { const r = await fx(url('open'), { method: 'PUT', body: JSON.stringify(want) }); if (r.ok) break; } catch (e) {} }
+  $('#tog').disabled = false; load();
+};
+const fmt = (ms) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+async function load() {
+  let o, subs; try { [o, subs] = await Promise.all([fx(url('open')).then((r) => r.json()), fx(url('sub')).then((r) => r.json())]); } catch (e) { return; }
+  isOpen = !!o;
+  $('#st').innerHTML = isOpen ? '<b style="color:#0b5d36">الاختبار مفتوح دلوقتي</b>' : '<b style="color:#b3261e">الاختبار مقفول</b>';
+  $('#tog').textContent = isOpen ? 'اقفل الاختبار' : 'افتح الاختبار'; $('#tog').className = isOpen ? 'off' : '';
+  const rows = Object.entries(subs || {}).map(([id, s]) => {
+    const a = s.a || {}; let score = 0, ms = 0, away = 0;
+    for (const [q, x] of Object.entries(a)) { if (x.c === KEY[q]) score++; ms += x.ms || 0; if (x.c === -2) away++; }
+    return { id, name: s.name || '؟', score, ms, away, done: !!s.done, n: Object.keys(a).length };
+  });
+  const fin = rows.filter((r) => r.done).sort((a, b) => b.score - a.score || a.ms - b.ms), run = rows.filter((r) => !r.done);
+  $('#sum').textContent = `خلّصوا ${fin.length} · لسه بيحلوا ${run.length}. الأصفر = الخمسة اللي هيلعبوا، والأخضر = احتياطي. عند التعادل الأسرع يتقدّم.`;
+  const row = (r, i) => `<tr class="${r.done && i < 5 ? 'top' : r.done && i < 7 ? 'res' : ''}"><td>${r.done ? i + 1 : ''}</td><td>${esc(r.name)}</td><td><span class="num">${r.done ? r.score + ' / ' + TOTAL : r.n + ' من ' + TOTAL + ' …'}</span></td><td><span class="num">${r.done ? fmt(r.ms) : ''}</span></td><td class="muted">${r.away ? `خرج من الصفحة ${r.away} مرة` : ''}</td><td><button class="mini ${arm === r.id ? 'arm' : ''}" data-id="${r.id}">${arm === r.id ? 'متأكد؟' : 'إعادة'}</button></td></tr>`;
+  $('#tb').innerHTML = fin.map(row).join('') + run.map((r) => row(r, 99)).join('');
+  document.querySelectorAll('.mini').forEach((b) => b.onclick = async () => {
+    if (arm !== b.dataset.id) { arm = b.dataset.id; return load(); }
+    arm = null; await fx(url('sub/' + b.dataset.id), { method: 'DELETE' }); load();
+  });
+}
+</script></body></html>

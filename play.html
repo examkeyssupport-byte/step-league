@@ -221,7 +221,7 @@ async function boot() {
       const code = $('#pcode').value.trim();
       if (!/^\d{4}$|^\d{6}$/.test(code)) { $('#jerr').textContent = ent.t === 'id' ? 'Write the last 4 digits of your ID number.' : 'Write the 4-digit code from your card.'; return; }
       $('#jerr').textContent = 'Checking…';
-      const good = code.length === 6 ? await masterOk(code).catch(() => false) : await codeOk(classKey(cls), name, code, ent.h).catch(() => false);
+      const good = code.length === 6 ? await masterOk(code).catch(() => false) : await codeOk(ent.k || classKey(cls), name, code, ent.h).catch(() => false); // k = the class he was hashed in, for a student who moved
       if (!good) { $('#jerr').textContent = ent.t === 'id' ? 'Wrong digits. Check the last 4 digits of your ID.' : 'Wrong code.'; return; }
       $('#jerr').textContent = '';
     }

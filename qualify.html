@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>STEP League Qualifier</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#f3f6f4;color:#14281d;font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none}
+main{max-width:560px;margin:auto;padding:16px}
+h1{font-size:22px;margin:6px 0 2px;color:#0b5d36}.muted{color:#5b6d62;font-size:15px}
+.card{background:#fff;border:1px solid #d9e3dc;border-radius:14px;padding:16px;margin-top:14px}
+button{font:inherit;cursor:pointer}
+.nm{display:block;width:100%;text-align:left;background:#fff;border:1px solid #cfdcd3;border-radius:10px;padding:11px 12px;margin-top:7px;color:#14281d}
+.nm.on{background:#0b5d36;color:#fff;border-color:#0b5d36}
+input{font:inherit;font-size:22px;letter-spacing:4px;text-align:center;width:100%;padding:11px;border:1px solid #b9c9be;border-radius:10px;margin-top:8px;-webkit-user-select:text;user-select:text}
+.go{display:block;width:100%;background:#0b5d36;color:#fff;border:0;border-radius:12px;padding:14px;font-weight:700;margin-top:14px}.go:disabled{opacity:.5}
+.err{color:#b3261e;font-weight:600;margin-top:8px;min-height:1.4em}
+.top{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.bar{height:8px;background:#dfe8e2;border-radius:6px;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:#0b5d36}.bar i.low{background:#c62828}
+.passage{background:#fbfaf3;border:1px solid #e4dfc4;border-radius:10px;padding:12px;font-size:15.5px;line-height:1.55;max-height:42vh;overflow:auto;margin-top:12px;white-space:pre-wrap}
+.q{font-weight:600;margin-top:14px;white-space:pre-wrap}.bl{display:inline-block;width:64px;border-bottom:2px solid #14281d;margin:0 3px}
+.opt{display:block;width:100%;text-align:left;background:#fff;border:1.5px solid #bfcfc5;border-radius:11px;padding:12px;margin-top:9px;color:#14281d}.opt:active{background:#e4f0e9}
+li{margin-top:5px}
+</style></head><body><main id="v"><p class="muted">Loading…</p></main>
+<script>
+const DB = 'https://step-league-school-default-rtdb.europe-west1.firebasedatabase.app';
+const QS = [{"id":"t8-g-783","p":"Hannah suddenly knew she ……...…. the wrong decision the night before.","o":["made","has made","had made","has been making"],"s":30},{"id":"t8-g-568","p":"I ………………… without a break since six o'clock this morning.","o":["study","am studying","have been studying","had studied"],"s":30},{"id":"t8-g-325","p":"If you …………….. your essay on time, you wouldn’t have lost any points.","o":["submitted","had submitted","have submitted","would submit"],"s":30},{"id":"t8-g-748","p":"Would it be ok if I.................. a break now?","o":["take","took","am taking","have taken"],"s":30},{"id":"t8-g-216","p":"I have no idea where ………………..","o":["is the student who joined last week.","is the student who last week joined.","the student who last week joined is","the student who joined last week is."],"s":30},{"id":"t8-g-23","p":"Chris met the man ……………. he guessed was the manager.","o":["he","him","who","which"],"s":30},{"id":"t8-g-420","p":"The chemistry teacher, …… everyone liked, retired last year.","o":["which","whom","him","he"],"s":30},{"id":"t8-g-48","p":"The teacher told students …………. about the exam.","o":["no worrying","don't worry","not to worry","not worry"],"s":30},{"id":"t8-g-694","p":"Don't be afraid of making mistakes when ………….. in class.","o":["you speaking","was speaking","are speaking","speaking"],"s":30},{"id":"t8-g-513","p":"The computer graphics course that …………… this semester is taught by the same teacher who teaches IT.","o":["offered","be offered","is offering","is being offered"],"s":30},{"id":"t8-g-665","p":"Before going to university, I didn't know that psychology........ for more than 150 years.","o":["had been studied","being studied","is studied","studied"],"s":30},{"id":"t8-g-847","p":"The boss sent me an email……………my summer holiday.","o":["in addition to","instead of","regarding","towards"],"s":30},{"id":"t8-g-228","p":"Adam: Did you follow the teacher's instructions for the homework? Roger: No, I did it …………..","o":["differently","different","difference","differentiation"],"s":30},{"id":"t8-g-4","p":"Which one of the underlined words or phrases is INCORRECT?\nTom and Adam went to play tennis at the sports club hours ago, and still has not returned home for lunch yet.","o":["to play","ago","has","yet"],"s":40,"ul":["to play","ago","has","yet"]},{"id":"t8-g-837","p":"Which one of the underlined words or phrases is INCORRECT?\nOn Wednesday we are going to discuss some of the things we review in our last meeting.","o":["On Wednesday","to discuss","review","last"],"s":40,"ul":["On Wednesday","to discuss","review","last"]},{"id":"t8-g-913","p":"Which one of the underlined words or phrases is INCORRECT?\nBill’s mother didn’t let him go out because she knew he have not finished his homework.","o":["didn’t","because","have","his"],"s":40,"ul":["didn’t","because","have","his"]},{"id":"t8-g-860","p":"Which phrase CORRECTLY REPLACES the INCORRECT underlined phrase?\nWalk in the mall, she saw a store selling strange and funny hats.","o":["Walking in the mall","Walks in the mall","Through in the mall","The mall in"],"s":40,"ul":["Walk in the mall"]},{"id":"t7-strange-1","p":"According to Paragraph (1), the strange, orange substance was found ……..","o":["on the beaches of Kotzebue","on the beaches of Point Hope","close to a compound in Alaska","between Kotzebue and Point Hope"],"s":120,"r":1},{"id":"t7-strange-3","p":"The word it in Paragraph (2) refers to ………….","o":["traces of oil","a microscope","the unknown substance","one of Alaska's laboratories"],"s":60,"r":1},{"id":"t7-strange-2","p":"The word far-fetched in Paragraph (1) is closest in meaning to ………….","o":["difficult to believe","easy to believe","definite","clear"],"s":60,"r":1}];
+const PASSAGE = "(1) A mysterious, orange, sticky gel, found on the beaches of Kivalina, a village situated on the Alaskan coast between Kotzebue and Point Hope, was recently the source of much interest. Many people thought that the sticky gel was some strange compound that had spread as a result of a chemical reaction. Others had more farfetched ideas about the substance's origins ranging from aliens to volcanic remains.\n\n(2) Scientists at an Alaskan laboratory have been busy analyzing the unknown substance. They have concluded that it is a formation of microscopic eggs. One of the scientists said that there are traces of oil in the eggs, and this is what is causing the strange, orange color.\n\n(3) The scientists have discovered that the eggs belong to a small invertebrate – a spineless animal, but they have not been able to identify the exact species.";
+const MASTER = 'f44ce9426cdc1c6955be15ba07cfd3bd';
+const P = new URLSearchParams(location.search);
+const CLS = "2-5", room = P.get('r') || "qual-2-5";
+const $ = (s) => document.querySelector(s), v = $('#v');
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ls = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, x) { try { localStorage.setItem(k, JSON.stringify(x)); } catch (e) {} } };
+function fx(u, opt = {}, ms = 7000) { const c = new AbortController(), t = setTimeout(() => c.abort(), ms); return fetch(u, { ...opt, cache: 'no-store', signal: c.signal }).finally(() => clearTimeout(t)); }
+const url = (p) => `${DB}/rooms/${encodeURIComponent(room)}/${p}.json`;
+const get = (u) => fx(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+async function put(p, val) { for (let i = 0; i < 4; i++) { try { const r = await fx(url(p), { method: 'PUT', body: JSON.stringify(val) }); if (r.ok) return true; } catch (e) {} await new Promise((r) => setTimeout(r, 900)); } return false; }
+const hex = (b) => [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
+async function pb(code, salt, it) { const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveBits']); return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: new TextEncoder().encode(salt), iterations: it }, k, 128)); }
+const idOf = async (n) => hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(n))).slice(0, 14);
+// the same student always gets the same order, so reopening the page continues the same test
+function shuffled(arr, seed) { let h = 0; for (const c of seed) h = (h * 31 + c.charCodeAt(0)) | 0; const a = arr.slice(); const rnd = () => { h = (h + 0x6D2B79F5) | 0; let t = Math.imul(h ^ (h >>> 15), 1 | h); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function stem(q) {
+  let s = esc(q.p);
+  for (const u of q.ul || []) { const e = esc(u).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); s = s.replace(new RegExp(`(^|[^A-Za-z’'])(${e})(?![A-Za-z])`, 'i'), '$1<u>$2</u>'); }
+  return s.replace(/(?:…|[.…]{2,})(?:\s*[.…]+)*/g, '<span class="bl"></span>');
+}
+let me = null, order = [], idx = 0, timer = null, open = null, startedAt = 0;
+
+async function boot() {
+  me = ls.get('ql_me_' + room);
+  if (me) return resume();
+  let isOpen, list;
+  try { [isOpen, list] = await Promise.all([get(url('open')), get(`${DB}/rooms/fanlist/${CLS}.json`)]); }
+  catch (e) { v.innerHTML = '<div class="card">Connecting… Check the internet if this takes long.</div>'; setTimeout(boot, 2500); return; }
+  if (!isOpen) { v.innerHTML = '<h1>STEP League Qualifier</h1><div class="card">The test is not open yet. Wait for your teacher; this page will start by itself.</div>'; setTimeout(boot, 4000); return; }
+  login(list || []);
+}
+function login(list) {
+  let pick = null;
+  v.innerHTML = `<h1>STEP League Qualifier</h1><p class="muted">Class ${esc(CLS.replace('-', '/'))} · Choose your name</p>
+    <div class="card"><div id="ns">${list.map((x, i) => `<button class="nm" data-i="${i}">${esc(x.n)}</button>`).join('')}</div>
+    <label style="display:block;margin-top:14px;font-weight:600">Last 4 digits of your national ID</label><input id="code" inputmode="numeric" maxlength="6" autocomplete="off">
+    <div class="err" id="e"></div><button class="go" id="enter">Enter</button></div>`;
+  v.querySelectorAll('.nm').forEach((b) => b.onclick = () => { pick = list[+b.dataset.i]; v.querySelectorAll('.nm').forEach((y) => y.classList.toggle('on', y === b)); });
+  $('#enter').onclick = async () => {
+    const code = $('#code').value.trim(), e = $('#e');
+    if (!pick) { e.textContent = 'Choose your name first.'; return; }
+    if (!/^\d{4}(\d{2})?$/.test(code)) { e.textContent = 'Type the last 4 digits of your ID.'; return; }
+    $('#enter').disabled = true; e.textContent = 'Checking…';
+    const good = code.length === 6 ? await pb(code, 'steplg|master', 200000) === MASTER : !!pick.h && await pb(code, `steplg|${pick.k || CLS}|${pick.n}`, 100000) === pick.h; // k = the class he was hashed in, for a student who moved
+    if (!good) { e.textContent = 'That code is not right for this name.'; $('#enter').disabled = false; return; }
+    me = { id: await idOf(pick.n), name: pick.n }; ls.set('ql_me_' + room, me); resume();
+  };
+}
+async function resume() {
+  order = [...shuffled(QS.filter((q) => !q.r), me.id), ...QS.filter((q) => q.r)];
+  let sub;
+  try { sub = await get(url('sub/' + me.id)); } catch (e) { v.innerHTML = '<div class="card">Connecting… Check the internet if this takes long.</div>'; setTimeout(resume, 2500); return; }
+  if (sub && sub.done) return finished(true);
+  if (sub && sub.cur != null) { idx = sub.cur + 1; return idx >= order.length ? finish() : show(); } // the question that was open when the page closed is lost
+  v.innerHTML = `<h1>Hello, ${esc(me.name)}</h1><div class="card"><b>Before you start</b><ul style="padding-left:20px;margin:8px 0">
+    <li>${order.length} questions, one at a time. You cannot go back.</li><li>Each question has a time limit.</li>
+    <li>If you leave this page, the open question is cancelled.</li><li>You get one attempt. If two students tie, the faster one wins.</li></ul>
+    <button class="go" id="st">Start</button></div>`;
+  $('#st').onclick = async () => { $('#st').disabled = true; await put('sub/' + me.id + '/name', me.name); await put('sub/' + me.id + '/at', { '.sv': 'timestamp' }); idx = 0; show(); };
+}
+function show() {
+  if (idx >= order.length) return finish();
+  const q = order[idx]; open = q; startedAt = Date.now();
+  put('sub/' + me.id + '/cur', idx);
+  const opts = shuffled(q.o.map((t, i) => ({ t, i })), me.id + q.id);
+  v.innerHTML = `<div class="top"><span>Question ${idx + 1} / ${order.length}</span><span id="sec"></span></div><div class="bar"><i id="b" style="width:100%"></i></div>
+    ${q.r ? `<div class="passage">${esc(PASSAGE)}</div>` : ''}<div class="q">${stem(q)}</div>
+    ${opts.map((x) => `<button class="opt" data-i="${x.i}">${esc(x.t)}</button>`).join('')}`;
+  v.querySelectorAll('.opt').forEach((b) => b.onclick = () => done(+b.dataset.i));
+  scrollTo(0, 0);
+  clearInterval(timer);
+  const tick = () => { const left = q.s - (Date.now() - startedAt) / 1000; if (left <= 0) return done(-1, q.s * 1000); $('#sec').textContent = Math.ceil(left) + ' s'; const b = $('#b'); b.style.width = (left / q.s * 100) + '%'; b.classList.toggle('low', left <= 5); };
+  tick(); timer = setInterval(tick, 250);
+}
+function done(c, ms) {
+  if (!open) return;
+  const q = open; open = null; clearInterval(timer);
+  put('sub/' + me.id + '/a/' + q.id, { c, ms: ms || Date.now() - startedAt });
+  idx++; show();
+}
+// leaving the page while a question is open cancels that question, as in the matches
+function left() {
+  if (!open) return;
+  const q = open; open = null; clearInterval(timer);
+  put('sub/' + me.id + '/a/' + q.id, { c: -2, ms: q.s * 1000 });
+  idx++;
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) return left();
+  if (me && !open && idx > 0 && idx <= order.length && $('.opt') ) { v.innerHTML = '<div class="card"><b>You left the page, so that question was cancelled.</b><button class="go" id="nx">Next</button></div>'; $('#nx').onclick = show; }
+});
+addEventListener('pagehide', left);
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+document.addEventListener('copy', (e) => e.preventDefault());
+async function finish() {
+  v.innerHTML = '<div class="card">Saving your answers…</div>';
+  await new Promise((r) => setTimeout(r, 1500));
+  let a = null; try { a = await get(url('sub/' + me.id + '/a')); } catch (e) {}
+  if (a) { const miss = order.filter((q) => !a[q.id]); for (const q of miss) await put('sub/' + me.id + '/a/' + q.id, { c: -1, ms: q.s * 1000 }); }
+  const ok = a && await put('sub/' + me.id + '/done', true);
+  if (!ok) { v.innerHTML = '<div class="card">Your answers did not reach the teacher yet. Check the internet.<button class="go" id="re">Send again</button></div>'; $('#re').onclick = finish; return; }
+  finished(false);
+}
+function finished(again) { v.innerHTML = `<h1>${again ? 'You have already taken this test' : 'Well done!'}</h1><div class="card">Your answers are saved. Your teacher will announce the five students who will play for the class.</div>`; }
+boot();
+</script></body></html>
