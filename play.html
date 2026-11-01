@@ -191,6 +191,7 @@ async function boot() {
   const applyGate = () => {
     const pb = $('#mode button[data-m="p"]'), fb = $('#mode button[data-m="f"]');
     pb.disabled = fb.disabled = false;
+    if (gate === 'both') { $('#gate').textContent = 'Join as a player or as a fan.'; return; } // trial matches: both open
     if ((gate === 'fans') !== fan) (gate === 'fans' ? fb : pb).click();
     pb.disabled = gate === 'fans'; fb.disabled = gate !== 'fans';
     $('#gate').textContent = gate === 'fans' ? 'Players are closed. Join as a fan.' : 'Players join now. Fans can join after the teacher opens it.';
